@@ -3,17 +3,24 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
 import { HandLandmarker, FilesetResolver, HandLandmarkerResult, DrawingUtils } from '@mediapipe/tasks-vision';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  private readonly signaturePoints = Array<Array<{ x: number, y: number }>>();
+  private readonly signaturePoints = Array<Array<{ x: number, y: number, timestamp: number }>>();
   private currentSignaturePointsIndex = -1;
+  public inputMode: 'index_finger_tip' | 'index_finger_tip_and_thumb_tip' = 'index_finger_tip_and_thumb_tip';
+
+  public clearSignature() {
+    this.signaturePoints.length = 0;
+    this.currentSignaturePointsIndex = -1;
+  }
 
   public ngOnInit() {
     const demosSection = document.getElementById("demos");
@@ -121,40 +128,69 @@ export class AppComponent implements OnInit {
       console.log(angularComponent.currentSignaturePointsIndex);
 
       // if both index finger tip and thumb tip are close enough
-      if (index_finger_tip && thumb_tip) {
-        const distance = Math.sqrt(Math.pow(index_finger_tip.x - thumb_tip.x, 2) + Math.pow(index_finger_tip.y - thumb_tip.y, 2));
-        if (distance < 0.05) {
-          if (angularComponent.currentSignaturePointsIndex === -1) {
-            angularComponent.currentSignaturePointsIndex = 0;
+      if (angularComponent.inputMode === 'index_finger_tip_and_thumb_tip') {
+        if (index_finger_tip && thumb_tip) {
+          const distance = Math.sqrt(Math.pow(index_finger_tip.x - thumb_tip.x, 2) + Math.pow(index_finger_tip.y - thumb_tip.y, 2));
+          if (distance < 0.05) {
+            if (angularComponent.currentSignaturePointsIndex === -1) {
+              angularComponent.currentSignaturePointsIndex = 0;
+            }
+
+            if (angularComponent.signaturePoints.at(angularComponent.currentSignaturePointsIndex) === undefined) {
+              angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] = new Array<{ x: number, y: number, timestamp: number }>();
+            }
+
+            // draw point on canvas based on index finger tip and thumb tip touch position
+            // since canvas rerenders every frame, this will create a line if we store points in an array
+
+            // Add new point to canvas
+            angularComponent.signaturePoints.at(angularComponent.currentSignaturePointsIndex)?.push({ x: index_finger_tip.x, y: index_finger_tip.y, timestamp: startTimeMs });
+          } else {
+            if (angularComponent.currentSignaturePointsIndex !== -1) {
+              if (angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] !== undefined) {
+                angularComponent.currentSignaturePointsIndex++;
+              }
+            }
           }
-
-          if (angularComponent.signaturePoints.at(angularComponent.currentSignaturePointsIndex) === undefined) {
-            angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] = new Array<{ x: number, y: number }>();
-          }
-
-          // draw point on canvas based on index finger tip and thumb tip touch position
-          // since canvas rerenders every frame, this will create a line if we store points in an array
-
-          // Add new point to canvas
-          angularComponent.signaturePoints.at(angularComponent.currentSignaturePointsIndex)?.push({ x: index_finger_tip.x, y: index_finger_tip.y });
-          console.log(angularComponent.signaturePoints);
         } else {
+          if (angularComponent.currentSignaturePointsIndex === -1) {
+          }
+
           if (angularComponent.currentSignaturePointsIndex !== -1) {
             if (angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] !== undefined) {
               angularComponent.currentSignaturePointsIndex++;
             }
           }
         }
-      } else {
-        if (angularComponent.currentSignaturePointsIndex === -1) {
-        }
+      }
 
-        if (angularComponent.currentSignaturePointsIndex !== -1) {
-          if (angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] !== undefined) {
-            angularComponent.currentSignaturePointsIndex++;
+      if (angularComponent.inputMode === 'index_finger_tip') {
+        if (index_finger_tip) {
+            if (angularComponent.currentSignaturePointsIndex === -1) {
+              angularComponent.currentSignaturePointsIndex = 0;
+            }
+
+            if (angularComponent.signaturePoints.at(angularComponent.currentSignaturePointsIndex) === undefined) {
+              angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] = new Array<{ x: number, y: number, timestamp: number }>();
+            }
+
+            // draw point on canvas based on index finger tip and thumb tip touch position
+            // since canvas rerenders every frame, this will create a line if we store points in an array
+
+            // Add new point to canvas
+            angularComponent.signaturePoints.at(angularComponent.currentSignaturePointsIndex)?.push({ x: index_finger_tip.x, y: index_finger_tip.y, timestamp: startTimeMs });
+        } else {
+          if (angularComponent.currentSignaturePointsIndex === -1) {
+          }
+
+          if (angularComponent.currentSignaturePointsIndex !== -1) {
+            if (angularComponent.signaturePoints[angularComponent.currentSignaturePointsIndex] !== undefined) {
+              angularComponent.currentSignaturePointsIndex++;
+            }
           }
         }
       }
+
 
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
       if (results?.landmarks) {

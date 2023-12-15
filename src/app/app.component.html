@@ -1,10 +1,20 @@
-<h1>Hand landmark detection using the MediaPipe HandLandmarker task</h1>
+<h1>MVP 0.0.1</h1>
+
+<div style="margin-bottom: 30px;">
+  <input type="radio" id="index_finger_tip_and_thumb_tip" name="inputMode" value="index_finger_tip_and_thumb_tip" [(ngModel)]="inputMode">
+  <label for="index_finger_tip_and_thumb_tip">Указательный + большой</label><br>
+  <input type="radio" id="index_finger_tip" name="inputMode" value="index_finger_tip" [(ngModel)]="inputMode">
+  <label for="index_finger_tip">Указательный</label><br>
+</div>
+
+
+<button (click)="clearSignature()" style="margin-bottom: 30px;">Clear signature</button>
 
 <section id="demos" class="invisible">
   <div id="liveView" class="videoView">
-    <button id="webcamButton" class="mdc-button mdc-button--raised">
-      <span class="mdc-button__ripple"></span>
-      <span class="mdc-button__label">ENABLE WEBCAM</span>
+    <button id="webcamButton">
+      <span></span>
+      <span>Enable webcamera</span>
     </button>
     <div style="position: relative;">
       <video id="webcam" style="position: absolute" autoplay playsinline></video>
