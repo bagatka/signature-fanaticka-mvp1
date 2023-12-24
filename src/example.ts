@@ -79,7 +79,6 @@ function enableCam() {
 
 let lastVideoTime = -1;
 let results: HandLandmarkerResult | undefined = undefined;
-console.log(video);
 async function predictWebcam() {
   canvasElement.style.width = video.videoWidth.toString();
   canvasElement.style.height = video.videoHeight.toString();
